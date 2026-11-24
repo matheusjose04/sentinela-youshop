@@ -24,9 +24,10 @@ _RE_EMAIL = re.compile(
 )
 _RE_IPV4 = re.compile(r"\b(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}\b")
 _RE_IPV6 = re.compile(r"(?<![\w:])(?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4}(?![\w:])")
-# Sequência de dígitos com separadores curtos entre eles (" ", ".", "-", "/", "(", ")").
-# Cada repetição consome obrigatoriamente um dígito: casamento linear.
-_RE_NUMERO = re.compile(r"[+(]?\d(?:[ .\-/()]{0,2}\d)*")
+# Sequência de dígitos com separadores curtos entre eles (espaço/quebra de linha/tab, ".", "-",
+# "/", "(", ")", "_"). Cada repetição consome obrigatoriamente um dígito: casamento linear.
+# Na dúvida mascara: "4200 4200" pode virar telefone mascarado (falso positivo aceito).
+_RE_NUMERO = re.compile(r"[+(]?\d(?:[\s.\-/()_]{0,2}\d)*")
 _RE_TELEFONE = re.compile(r"(?:\+?55 ?)?(?:\(?\d{2}\)? ?)?9?\d{4}[- ]?\d{4}")
 
 
@@ -132,6 +133,7 @@ def mascarar_texto(texto: str) -> str:
     texto = _limpar(texto)
     texto = _RE_UUID.sub(lambda m: _mascarar_uuid(m.group(0)), texto)
     texto = _RE_EMAIL.sub(_mascarar_email, texto)
-    texto = _RE_IPV6.sub(_mascarar_ipv6, texto)
+    # IPv4 antes do IPv6: assim "::ffff:192.0.2.15" (IPv4 mapeado) também perde o fim.
     texto = _RE_IPV4.sub(lambda m: f"{m.group(1)}.{m.group(2)}.*.*", texto)
+    texto = _RE_IPV6.sub(_mascarar_ipv6, texto)
     return _RE_NUMERO.sub(_mascarar_numero, texto)

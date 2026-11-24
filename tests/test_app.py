@@ -218,3 +218,12 @@ def test_rodape_aparece_com_fila_vazia(monkeypatch):
 def test_assunto_da_fila_com_legenda_de_origem(app):
     textos = [c.value for c in app.caption]
     assert textos.count("dado de terceiros") >= 12
+
+
+def test_app_reusa_a_assinatura_do_core():
+    """A chave de cache por mtime mora em sentinela.core.dados (a mesma usada pelo MCP)."""
+    from pathlib import Path
+
+    fonte = (Path(__file__).resolve().parent.parent / "app.py").read_text(encoding="utf-8")
+    assert "hashlib" not in fonte
+    assert "dados.assinatura()" in fonte or "assinatura as _assinatura_core" in fonte

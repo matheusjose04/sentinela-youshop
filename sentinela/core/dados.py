@@ -1,14 +1,17 @@
 """Carga e validação da base fictícia (data/*.json)."""
 from __future__ import annotations
 
+import hashlib
 import json
 import math
+import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 from sentinela.core.grafo import PESOS
+from sentinela.core.injecao import detectar_injecao
 from sentinela.core.modelos import (
     MOTIVOS_CODIGO,
     TIPOS_EVENTO,
@@ -26,6 +29,11 @@ from sentinela.core.modelos import (
 AGORA_DEMO = datetime(2026, 11, 20, 15, 0, tzinfo=timezone(timedelta(hours=-3)))
 
 PASTA_PADRAO = Path(__file__).resolve().parents[2] / "data"
+
+# Rótulos (handles, nomes de produto e de comprador) são escolhidos por terceiros e aparecem
+# fora de "citacao" (provas, motivo do score, grafo). Por isso só aceitamos uma allowlist curta:
+# letras (com acento), dígitos, espaço, "@", ".", "-", "_", "•" e parênteses, até 40 caracteres.
+ROTULO_RE = re.compile(r"[@\w .\-•()À-ÿ]{1,40}")
 
 
 class DadosInvalidos(ValueError):
@@ -85,6 +93,24 @@ def _exigir(existe: bool, mensagem: str) -> None:
         raise DadosInvalidos(mensagem)
 
 
+def assinatura(pasta: Path | str = PASTA_PADRAO) -> str:
+    """Assinatura de data/*.json (nome, mtime, tamanho): mudou um JSON, muda a assinatura.
+
+    Usada como chave de cache pela UI e pelo MCP (recarregam a base sem reiniciar).
+    """
+    arquivos = sorted(Path(pasta).glob("*.json"))
+    partes = [f"{p.name}:{p.stat().st_mtime_ns}:{p.stat().st_size}" for p in arquivos]
+    return hashlib.sha256("|".join(partes).encode()).hexdigest()[:16]
+
+
+def _validar_rotulo(registro: dict[str, Any]) -> None:
+    """Allowlist + detector de injeção. A mensagem não repete o rótulo ruim (só o id)."""
+    rotulo = registro.get("rotulo")
+    dono = registro.get("id")
+    _exigir(isinstance(rotulo, str) and ROTULO_RE.fullmatch(rotulo) is not None, f"rótulo inválido em {dono}")
+    _exigir(not detectar_injecao(rotulo), f"rótulo com tentativa de injeção em {dono}")
+
+
 def carregar(pasta: Path | str = PASTA_PADRAO) -> Base:
     """Lê os JSON, cria um vértice + aresta "abriu chamado" por chamado e valida referências."""
     pasta = Path(pasta)
@@ -95,6 +121,7 @@ def carregar(pasta: Path | str = PASTA_PADRAO) -> Base:
             isinstance(r.get("fraude_confirmada", False), bool),
             f"fraude_confirmada deve ser true/false em {r.get('id')}",
         )
+        _validar_rotulo(r)
         if "oferece" in r:
             r["oferece"] = tuple(r["oferece"])
     vertices = {v.id: v for v in _construir(Vertice, brutos_v)}

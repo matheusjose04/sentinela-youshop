@@ -25,6 +25,8 @@ MotivoCodigo = Literal[
 TIPOS_VERTICE: frozenset[str] = frozenset(get_args(TipoVertice))
 TIPOS_EVENTO: frozenset[str] = frozenset(get_args(TipoEventoSaque))
 MOTIVOS_CODIGO: frozenset[str] = frozenset(get_args(MotivoCodigo))
+# Os 4 centros de atendimento, na ordem de exibição (UI e MCP leem daqui).
+CENTROS: tuple[str, ...] = get_args(Centro)
 
 # Tipos de vértice que representam uma conta (pessoa/perfil), usados para medir o "grupo".
 TIPOS_CONTA: frozenset[str] = frozenset({"comprador", "creator"})

@@ -132,3 +132,44 @@ def test_horario_e_data_nao_viram_ipv6_nem_telefone():
 
 def test_fallback_da_chave_pix_nao_vaza_nada():
     assert mascarar_chave_pix("chave-estranha-1234") == "***"
+
+
+# ---------------------------------------------------------------- revisão da Etapa 3: separadores e IPv4 mapeado
+@pytest.mark.parametrize("texto", ["123\n456\n789\n00", "123_456_789_00", "123\t456 789_00", "123 _456.789-00"])
+def test_cpf_com_quebra_de_linha_ou_sublinhado_e_mascarado(texto):
+    from sentinela.core.mascara import mascarar_texto
+
+    saida = mascarar_texto(f"CPF {texto} fim")
+    assert "***.456.789-**" in saida
+    assert "00 fim" not in saida.replace("-**", "")
+
+
+def test_ipv4_mapeado_em_ipv6_e_mascarado():
+    from sentinela.core.mascara import mascarar_texto
+
+    saida = mascarar_texto("acesso de ::ffff:192.0.2.15 agora")
+    assert "192.0.2.15" not in saida
+    assert "2.15" not in saida
+
+
+def test_numeros_curtos_continuam_legiveis():
+    from sentinela.core.mascara import mascarar_texto
+
+    assert mascarar_texto("R$ 4.200 em 12 min") == "R$ 4.200 em 12 min"
+
+
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "CPF 123.456.789-00, IP 192.0.2.15, tel (11) 98765-4321",
+        "123\n456\n789\n00 e 123_456_789_00",
+        "chave 7f3c2a10-1b2c-4d5e-8f90-123456789f3c e ana@example.com",
+        "::ffff:192.0.2.15 e 2001:db8::1",
+        "4200 4200 / 12.345.678/0001-90",
+    ],
+)
+def test_mascarar_texto_e_idempotente(texto):
+    from sentinela.core.mascara import mascarar_texto
+
+    uma = mascarar_texto(texto)
+    assert mascarar_texto(uma) == uma

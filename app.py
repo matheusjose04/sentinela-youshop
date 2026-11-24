@@ -8,7 +8,6 @@ Regras desta tela:
 """
 from __future__ import annotations
 
-import hashlib
 from datetime import datetime
 from typing import Any
 
@@ -22,7 +21,8 @@ from sentinela.core.caso import (
     montar_caso,
     montar_fila,
 )
-from sentinela.core.dados import AGORA_DEMO, PASTA_PADRAO, carregar
+from sentinela.core.dados import AGORA_DEMO, carregar
+from sentinela.core.dados import assinatura as _assinatura_core
 from sentinela.ui.acoes import CENTROS, centros_para_devolver, registrar_acao, status_do_chamado
 from sentinela.ui.formatacao import (
     HORAS_MAX,
@@ -60,9 +60,8 @@ CSS = """
 
 # ---------------------------------------------------------------- cache (chaves sempre string)
 def _assinatura() -> str:
-    """Assinatura de data/*.json (nome, mtime, tamanho): mudou o JSON, muda a chave do cache."""
-    partes = [f"{p.name}:{p.stat().st_mtime_ns}:{p.stat().st_size}" for p in sorted(PASTA_PADRAO.glob("*.json"))]
-    return hashlib.sha256("|".join(partes).encode()).hexdigest()[:16]
+    """Assinatura de data/*.json (core: nome, mtime, tamanho): mudou o JSON, muda a chave do cache."""
+    return _assinatura_core()
 
 
 @st.cache_resource(max_entries=2)

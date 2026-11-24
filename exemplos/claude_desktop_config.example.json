@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "sentinela": {
+      "command": "<CAMINHO>\\.venv\\Scripts\\python.exe",
+      "args": ["-I", "<CAMINHO>\\mcp_server.py"]
+    }
+  }
+}

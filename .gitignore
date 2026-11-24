@@ -8,7 +8,7 @@ dist/
 # Arquivos de trabalho locais (não vão para o GitHub)
 CLAUDE.md
 .claude/
-docs/SPEC.md
+docs/
 PROMPT_INICIAL.md
 COMO_USAR.md
 
@@ -23,6 +23,5 @@ __pycache__/
 .ecc-*
 .agentshield/
 memoria/
-docs/CODEMAPS/
 .coverage
 htmlcov/

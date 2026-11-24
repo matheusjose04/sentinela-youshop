@@ -9,7 +9,10 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any
 
-CENTROS: tuple[str, ...] = ("Comprador", "Produtor", "Creator", "Operações")
+from sentinela.core.modelos import CENTROS
+
+__all__ = ["CENTROS", "centros_para_devolver", "registrar_acao", "status_do_chamado"]
+
 TIPOS_ACAO: frozenset[str] = frozenset({"resolvido", "encaminhado", "devolvido"})
 LIMITE_OBSERVACAO = 500
 LIMITE_ACOES = 200  # a sessão guarda só as últimas 200 ações

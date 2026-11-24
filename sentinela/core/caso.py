@@ -1,9 +1,10 @@
 """Caso montado: ponto único de SAÍDA para a UI (Streamlit) e o servidor MCP.
 
-A UI e o MCP usam SOMENTE estas quatro funções (todas devolvem dict já mascarado e com aviso):
+A UI e o MCP usam SOMENTE estas funções (todas devolvem dict já mascarado e com aviso):
   - montar_caso(chamado_id, base, agora)
   - montar_fila(base, agora, centro=None)
   - grafo_do_chamado(chamado_id, base, agora)
+  - distancia_fraude(chamado_id, base, agora)
   - alertas_saque_para_saida(base, agora)
 Nada de dataclass cru (com CPF/IP/chave Pix) sai daqui.
 
@@ -233,9 +234,11 @@ def montar_caso(chamado_id: str, base: Base, agora: datetime, analise: Analise |
     return _mascarar_tudo(caso)
 
 
-def montar_fila(base: Base, agora: datetime, centro: str | None = None) -> dict[str, Any]:
+def montar_fila(
+    base: Base, agora: datetime, centro: str | None = None, analise: Analise | None = None
+) -> dict[str, Any]:
     """Fila priorizada (heap). `centro=None` ou "Todos" = todos os centros."""
-    analise = analisar(base, agora)
+    analise = analise or analisar(base, agora)
     fila = FilaPrioridade()
     for cid, ch in base.chamados.items():
         fila.adicionar(ch, analise.contextos[cid])
@@ -306,6 +309,17 @@ def grafo_do_chamado(chamado_id: str, base: Base, agora: datetime, analise: Anal
             "distancia_texto": _texto_distancia(n),
         }
     )
+
+
+def distancia_fraude(chamado_id: str, base: Base, agora: datetime, analise: Analise | None = None) -> dict[str, Any]:
+    """Distância (Dijkstra, sem atravessar produto) do chamado até a fraude confirmada mais próxima.
+
+    Mesmo conteúdo de montar_caso(...)["distancia_fraude"], com aviso. KeyError se o id não existe.
+    """
+    if chamado_id not in base.chamados:
+        raise KeyError(chamado_id)
+    analise = analise or analisar(base, agora)
+    return _mascarar_tudo({"aviso": AVISO, "chamado_id": chamado_id, **_distancia(analise, chamado_id)})
 
 
 def alertas_saque_para_saida(base: Base, agora: datetime) -> dict[str, Any]:
