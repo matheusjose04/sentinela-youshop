@@ -6,6 +6,8 @@ A UI e o MCP usam SOMENTE estas funções (todas devolvem dict já mascarado e c
   - grafo_do_chamado(chamado_id, base, agora)
   - distancia_fraude(chamado_id, base, agora)
   - alertas_saque_para_saida(base, agora)
+  - resumo_do_caso(chamado_id, base, agora)   (cartão de 4 linhas no topo do caso)
+  - grupos_dos_chamados(base, agora)          (para a UI agrupar a fila; montar_fila não muda)
 Nada de dataclass cru (com CPF/IP/chave Pix) sai daqui.
 
 Mostra causa, provas e alertas; NÃO sugere o que fazer: quem decide é o atendente.
@@ -337,3 +339,127 @@ def alertas_saque_para_saida(base: Base, agora: datetime) -> dict[str, Any]:
         for a in listar_alertas_saque(base, agora)
     ]
     return _mascarar_tudo({"aviso": AVISO, "itens": itens})
+
+
+# ---------------------------------------------------------------- resumo (cartão do topo do caso) e grupos
+PREFIXO_CAUSA = "Causa provável: "
+
+
+def _plural(n: int, singular: str, plural: str) -> str:
+    return f"{n} {singular if n == 1 else plural}"
+
+
+# Frases fixas dos alertas do grupo (o único dado variável são ids de chamado vindos da base).
+_ALERTA_GRUPO = {
+    "injecao": ("tem texto tentando instruir a IA", "têm texto tentando instruir a IA"),
+    "saque": ("tem saque em espera para revisão humana", "têm saque em espera para revisão humana"),
+}
+
+
+def frase_alerta_grupo(tipo: str, ids: list[str], tamanho_grupo: int) -> str:
+    """'1 chamado deste grupo tem texto tentando instruir a IA: ch-601' (ou 'Este chamado …' se isolado)."""
+    singular, plural = _ALERTA_GRUPO[tipo]
+    if tamanho_grupo <= 1:
+        return f"Este chamado {singular}"
+    verbo = singular if len(ids) == 1 else plural
+    return f"{_plural(len(ids), 'chamado', 'chamados')} deste grupo {verbo}: {', '.join(ids)}"
+
+
+def _tem_alerta_injecao(chamado_id: str, base: Base, analise: Analise) -> bool:
+    ch = base.chamados[chamado_id]
+    return bool(_alertas_injecao(ch, base, analise.causas[chamado_id], analise.sinais[chamado_id]))
+
+
+def _tem_alerta_saque(chamado_id: str, analise: Analise) -> bool:
+    """Mesma condição do alerta de segurança "saque_em_espera" do caso montado."""
+    return analise.causas[chamado_id].tipo == "conta_invadida" and analise.sinais[chamado_id].alerta_saque is not None
+
+
+def _alertas_do_grupo(grupo: list[str], base: Base, analise: Analise) -> list[dict[str, Any]]:
+    """Alertas de QUALQUER membro do grupo: o líder não esconde o alerta de outro chamado."""
+    saida = []
+    for tipo, tem in (
+        ("injecao", lambda c: _tem_alerta_injecao(c, base, analise)),
+        ("saque", lambda c: _tem_alerta_saque(c, analise)),
+    ):
+        ids = [c for c in grupo if tem(c)]
+        if ids:
+            saida.append({"tipo": tipo, "ids": ids, "texto": frase_alerta_grupo(tipo, ids, len(grupo))})
+    return saida
+
+
+def _em_risco(chamado_id: str, analise: Analise) -> bool:
+    """Dinheiro "em risco" só com sinal de segurança: saque em espera, fraude ou conta ligada no grupo."""
+    s = analise.sinais[chamado_id]
+    return s.alerta_saque is not None or bool(s.fraudes) or bool(s.compartilhados)
+
+
+def _valor_em_risco(chamado_id: str, base: Base, analise: Analise) -> tuple[float, str]:
+    """Saque em espera (se houver) ou a soma dos valores dos chamados do grupo (valor do sistema)."""
+    alerta = analise.sinais[chamado_id].alerta_saque
+    if alerta is not None:
+        return alerta.valor, "saque em espera"
+    grupo = analise.rotas[chamado_id].grupo_ids
+    total = round(sum(base.chamados[c].valor for c in grupo), 2)
+    origem = "valor do chamado" if len(grupo) == 1 else f"soma dos {len(grupo)} chamados do grupo"
+    return total, origem
+
+
+def resumo_do_caso(chamado_id: str, base: Base, agora: datetime, analise: Analise | None = None) -> dict[str, Any]:
+    """Resumo em 4 linhas do caso (causa + confiança, alcance, valor, centro) + alertas do grupo. Mascarado.
+
+    Mostra o GRUPO do chamado (mesma causa, mesmo alvo). Não sugere decisão. KeyError se o id não existe.
+    """
+    if chamado_id not in base.chamados:
+        raise KeyError(chamado_id)
+    analise = analise or analisar(base, agora)
+    causa, rota = analise.causas[chamado_id], analise.rotas[chamado_id]
+    grupo = list(rota.grupo_ids)
+    # Contas afetadas = maior alcance entre os chamados do grupo (mesma regra da parcela "grupo" do score).
+    contas = max(max(analise.contextos[c].contas_no_grupo, analise.contextos[c].contas_da_causa) for c in grupo)
+    contas = max(contas, 1)
+    valor, origem = _valor_em_risco(chamado_id, base, analise)
+    em_risco = _em_risco(chamado_id, analise)
+    if valor <= 0:
+        valor_texto = "nenhum valor envolvido"
+    elif em_risco:
+        valor_texto = f"{formatar_brl(valor)} em risco ({origem})"
+    else:
+        valor_texto = f"{formatar_brl(valor)} envolvidos ({origem})"
+    texto_causa = causa.descricao.removeprefix(PREFIXO_CAUSA)
+    return _mascarar_tudo(
+        {
+            "aviso": AVISO,
+            "chamado_id": chamado_id,
+            "causa": texto_causa[:1].upper() + texto_causa[1:],
+            "confianca": causa.confianca,
+            "contas": contas,
+            "chamados": len(grupo),
+            "grupo_ids": grupo,
+            "afeta_texto": f"afeta {_plural(contas, 'conta', 'contas')} · {_plural(len(grupo), 'chamado', 'chamados')}",
+            "valor": valor,
+            "valor_origem": origem,
+            "valor_texto": valor_texto,
+            "em_risco": em_risco,
+            "centro": rota.centro,
+            "alertas_grupo": _alertas_do_grupo(grupo, base, analise),
+        }
+    )
+
+
+def grupos_dos_chamados(base: Base, agora: datetime, analise: Analise | None = None) -> dict[str, Any]:
+    """Para cada chamado: ids do grupo (mesma causa), quando abriu e se tem alerta de injeção/saque. Para a fila na UI.
+
+    Aditivo: `montar_fila` (usada pelo MCP) não muda de formato.
+    """
+    analise = analise or analisar(base, agora)
+    grupos = {
+        cid: {
+            "grupo_ids": list(analise.rotas[cid].grupo_ids),
+            "aberto_em": ch.aberto_em.isoformat(),
+            "tem_alerta_injecao": _tem_alerta_injecao(cid, base, analise),
+            "tem_alerta_saque": _tem_alerta_saque(cid, analise),
+        }
+        for cid, ch in base.chamados.items()
+    }
+    return _mascarar_tudo({"aviso": AVISO, "grupos": grupos})

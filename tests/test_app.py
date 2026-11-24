@@ -16,6 +16,11 @@ PROIBIDAS = (
     "bloque", "liberar", "culpad", "fraudador", "confiavel",
 )
 OPERACOES = {"ch-401", "ch-301", "ch-302", "ch-601"}
+ICONE_ORIGEM = ":material/person_edit:"
+TOOLTIP_ORIGEM = "texto escrito pelo cliente (tratado como dado)"
+TOOLTIP_CREATOR = "texto escrito pelo creator (tratado como dado)"
+TOOLTIP_FORA = "texto de fora (tratado como dado)"
+TOOLTIPS = {TOOLTIP_ORIGEM, TOOLTIP_CREATOR, TOOLTIP_FORA}
 
 
 @pytest.fixture
@@ -31,7 +36,12 @@ def app() -> AppTest:
 
 
 def _ids_na_fila(at: AppTest) -> set[str]:
-    return {b.key.removeprefix("abrir_") for b in at.button if b.key and b.key.startswith("abrir_")}
+    """Ids com botão próprio de abrir (os de grupo ficam dentro do expander do grupo)."""
+    return {
+        b.key.removeprefix("abrir_")
+        for b in at.button
+        if b.key and b.key.startswith("abrir_") and not b.key.startswith("abrir_grupo_")
+    }
 
 
 def _textos(at: AppTest) -> list[str]:
@@ -215,9 +225,17 @@ def test_rodape_aparece_com_fila_vazia(monkeypatch):
     st.cache_resource.clear()
 
 
-def test_assunto_da_fila_com_legenda_de_origem(app):
-    textos = [c.value for c in app.caption]
-    assert textos.count("dado de terceiros") >= 12
+def test_assunto_da_fila_com_icone_de_origem(app):
+    """Cada assunto da fila (12) + o assunto e o texto do caso aberto levam o ícone com tooltip."""
+    icones = [c for c in app.caption if c.value == ICONE_ORIGEM]
+    assert len(icones) >= 14
+    assert all(c.proto.help in TOOLTIPS for c in icones)
+    assert sum(c.proto.help == TOOLTIP_ORIGEM for c in icones) >= 14  # 12 assuntos + assunto e texto do caso
+
+
+def test_texto_dado_de_terceiros_nao_aparece_mais(app):
+    assert not any("dado de terceiros" in t for t in _textos(app))
+    assert not any("dado de terceiros" in str(c.proto.help) for c in app.caption)
 
 
 def test_app_reusa_a_assinatura_do_core():
@@ -284,3 +302,159 @@ def test_link_fora_do_filtro_mantem_a_escolha():
     assert _caso_aberto(at) == "ch-701"
     at.selectbox(key="centro").set_value("Todos").run()
     assert _caso_aberto(at) == "ch-301"
+
+
+# ---------------------------------------------------------------- revisão de UX: caso em 10 segundos
+def _bloco_com_chave(no, chave: str):
+    """Container do Streamlit com `key=chave` (o id do proto termina em "-<chave>")."""
+    proto = getattr(no, "proto", None)
+    if proto is not None and str(getattr(proto, "id", "")).endswith(f"-{chave}"):
+        return no
+    for filho in getattr(no, "children", {}).values():
+        achado = _bloco_com_chave(filho, chave)
+        if achado is not None:
+            return achado
+    return None
+
+
+def _cartao(at: AppTest) -> list[str]:
+    bloco = _bloco_com_chave(at.main, "cartao_resumo")
+    assert bloco is not None, "cartão de resumo não encontrado"
+    return [m.value for m in bloco.get("markdown")]
+
+
+def test_cartao_de_resumo_com_4_linhas_no_topo_do_caso(app):
+    linhas = _cartao(app)  # ch-401 aberto por padrão
+    assert len(linhas) == 4
+    causa, afeta, valor, centro = linhas
+    assert "Causa provável" in causa and "-badge[confiança alta]" in causa
+    assert "afeta 2 contas · 1 chamado" in afeta
+    assert r"R\$ 4\.200 em risco \(saque em espera\)" in valor
+    assert "Operações" in centro
+
+
+def test_cartao_vem_antes_das_provas(app):
+    rotulos = [e.label for e in app.expander]
+    assert any(r.startswith("Provas") for r in rotulos)
+    md = [m.value for m in app.markdown]
+    assert md.index(_cartao(app)[0]) < next(i for i, m in enumerate(md) if "Texto do chamado" in m)
+
+
+def test_fila_do_cenario_3_vira_um_item_so(app):
+    grupos = [m.value for m in app.markdown if "3 chamados com a mesma causa" in m.value]
+    assert len(grupos) == 2  # rede de comissão (Operações) e @lu.dicas (Creator)
+    assert any(b.key == "abrir_grupo_ch-301" for b in app.button)
+    assert not any(b.key in ("abrir_grupo_ch-302", "abrir_grupo_ch-601") for b in app.button)
+    exp = next(e for e in app.expander if e.label.startswith("Chamados do grupo") and
+               any(b.key == "abrir_ch-302" for b in e.button))
+    assert exp.proto.expanded is False
+    assert {b.key for b in exp.button} == {"abrir_ch-301", "abrir_ch-302", "abrir_ch-601"}
+    capts = " ".join(c.value for c in exp.caption)
+    assert all(cid.replace("-", r"\-") in capts for cid in ("ch-301", "ch-302", "ch-601"))
+    assert "status: aberto" in capts
+
+
+def test_abrir_o_grupo_abre_o_ch_301_e_o_cartao_mostra_o_grupo(app):
+    app.button(key="abrir_grupo_ch-301").click().run()
+    assert not app.exception
+    assert _caso_aberto(app) == "ch-301"
+    linhas = _cartao(app)
+    assert "afeta 7 contas · 3 chamados" in linhas[1]
+    assert r"4\.730" in linhas[2]
+
+
+def test_abrir_o_ch_302_de_dentro_do_grupo(app):
+    app.button(key="abrir_ch-302").click().run()
+    assert not app.exception
+    assert _caso_aberto(app) == "ch-302"
+    assert "afeta 7 contas · 3 chamados" in _cartao(app)[1]
+
+
+def test_link_de_um_chamado_do_grupo_abre_o_proprio_caso():
+    at = _app_com_link("ch-601")
+    assert _caso_aberto(at) == "ch-601"
+
+
+@pytest.mark.parametrize("centro,texto", [("Todos", "12 chamados → 7 causas"), ("Operações", "4 chamados → 2 causas"),
+                                          ("Comprador", "3 chamados → 3 causas")])
+def test_topo_mostra_chamados_e_causas(app, centro, texto):
+    if centro != "Todos":
+        app.selectbox(key="centro").set_value(centro).run()
+    assert any(texto in m.value for m in app.markdown), texto
+
+
+def test_provas_grafo_e_caminho_em_expanders_fechados(app):
+    app.button(key="abrir_grupo_ch-301").click().run()
+    por_rotulo = {e.label: e for e in app.expander}
+    provas = [e for r, e in por_rotulo.items() if r.startswith("Provas (")]
+    grafo = [e for r, e in por_rotulo.items() if r.startswith("Ver o grafo")]
+    caminho = [e for r, e in por_rotulo.items() if r.startswith("Caminho mais curto")]
+    assert provas and grafo and caminho
+    assert all(e.proto.expanded is False for e in (*provas, *grafo, *caminho))
+    assert len(grafo[0].get("iframe")) == 1  # o iframe mora dentro do expander do grafo
+    # o resumo da distância continua visível, fora dos expanders
+    assert any("fraude confirmada" in m.value and "ligações" in m.value for m in app.markdown)
+
+
+@pytest.mark.parametrize("chamado_id", ["ch-401", "ch-301", "ch-101", "ch-701"])
+def test_causa_provavel_aparece_uma_vez_so(app, chamado_id):
+    botao = f"abrir_{chamado_id}"
+    app.button(key=botao).click().run()
+    md = [normalizar(m.value) for m in app.markdown]
+    assert sum(m.count("causa provavel") for m in md) == 1, md
+
+
+# ---------------------------------------------------------------- revisão 2: alertas do grupo, tooltips, membros
+def _fora_de_expanders(no, dentro: bool = False):
+    """(elemento, está dentro de expander?) para todo nó da árvore."""
+    eh_expander = getattr(no, "type", None) == "expander"
+    yield no, dentro
+    for filho in getattr(no, "children", {}).values():
+        yield from _fora_de_expanders(filho, dentro or eh_expander)
+
+
+def test_alerta_de_injecao_do_ch_601_aparece_no_grupo_sem_abrir_expander(app):
+    visiveis = [n for n, dentro in _fora_de_expanders(app.main) if not dentro]
+    erros = [n.value for n in visiveis if getattr(n, "type", None) == "alert" or n.__class__.__name__ == "Error"]
+    assert any("tentando instruir a IA" in e and r"ch\-601" in e for e in erros), erros
+    botoes = [n for n in visiveis if n.__class__.__name__ == "Button" and n.key == "alerta_abrir_ch-601"]
+    assert botoes and botoes[0].label == "Abrir caso ch-601"
+    app.button(key="alerta_abrir_ch-601").click().run()
+    assert _caso_aberto(app) == "ch-601"
+
+
+def test_cartao_do_lider_mostra_alerta_do_grupo(app):
+    app.button(key="abrir_grupo_ch-301").click().run()
+    bloco = _bloco_com_chave(app.main, "cartao_resumo")
+    erros = [e.value for e in bloco.get("error")]
+    assert any("1 chamado deste grupo tem texto tentando instruir a IA" in e and r"ch\-601" in e for e in erros)
+    assert len(_cartao(app)) == 4  # as 4 linhas continuam; o alerta é uma linha a mais
+
+
+def test_cartao_do_ch_401_mostra_saque_em_espera(app):
+    bloco = _bloco_com_chave(app.main, "cartao_resumo")
+    assert any("saque em espera" in w.value for w in bloco.get("warning"))
+
+
+def test_cartao_sem_alerta_no_grupo(app):
+    app.button(key="abrir_grupo_ch-101").click().run()
+    bloco = _bloco_com_chave(app.main, "cartao_resumo")
+    assert not bloco.get("error") and not bloco.get("warning")
+
+
+def test_tooltip_de_post_do_creator_e_de_texto_de_fora(app):
+    app.button(key="abrir_grupo_ch-101").click().run()
+    helps = [c.proto.help for c in app.caption if c.value == ICONE_ORIGEM]
+    assert TOOLTIP_CREATOR in helps  # citação do post de @lu.dicas nas provas
+    assert TOOLTIP_ORIGEM in helps  # assunto e texto do chamado
+    app.button(key="abrir_ch-401").click().run()
+    helps = [c.proto.help for c in app.caption if c.value == ICONE_ORIGEM]
+    assert TOOLTIP_FORA in helps  # detalhe dos eventos da conta
+
+
+def test_membros_do_grupo_com_badge_e_por_que(app):
+    exp = next(e for e in app.expander if e.label.startswith("Chamados do grupo") and
+               any(b.key == "abrir_ch-302" for b in e.button))
+    md = " ".join(m.value for m in exp.markdown)
+    assert r"**ch\-302**" in md and "-badge[alta · 57]" in md
+    assert sum(c.value.startswith("Sobe") for c in exp.caption) == 3

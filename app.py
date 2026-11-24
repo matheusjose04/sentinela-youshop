@@ -19,11 +19,14 @@ from sentinela.core.caso import (
     alertas_saque_para_saida,
     analisar,
     grafo_do_chamado,
+    grupos_dos_chamados,
     montar_caso,
     montar_fila,
+    resumo_do_caso,
 )
 from sentinela.core.dados import AGORA_DEMO, carregar
 from sentinela.core.dados import assinatura as _assinatura_core
+from sentinela.ui.agrupamento import agrupar_fila
 from sentinela.ui.acoes import CENTROS, centros_para_devolver, registrar_acao, status_do_chamado
 from sentinela.ui.formatacao import (
     HORAS_MAX,
@@ -34,11 +37,14 @@ from sentinela.ui.formatacao import (
     linhas_score,
     nivel_seguro,
     texto_citado,
+    tooltip_origem,
 )
 from sentinela.ui.grafo_html import ALTURA_PX, TIPO_VISUAL, html_do_grafo
 
 STATUS_SAQUE = {"em_espera": "em espera, revisão humana"}
-ORIGEM = "dado de terceiros"
+# Texto de terceiros ganha um ícone com tooltip. O tooltip é uma das constantes de
+# formatacao (cliente / creator / texto de fora), escolhida pela fonte que o core informa.
+ICONE_ORIGEM = ":material/person_edit:"
 # ?chamado=ch-301 na URL: só formato fixo, curto e ASCII. Usado com fullmatch, porque
 # com match o "$" aceitaria uma quebra de linha no fim.
 PADRAO_LINK = re.compile(r"^ch-[0-9]{3,6}$")
@@ -98,6 +104,18 @@ def _grafo(assinatura: str, agora_iso: str, chamado_id: str) -> tuple[dict[str, 
     agora = datetime.fromisoformat(agora_iso)
     grafo = grafo_do_chamado(chamado_id, _base(assinatura), agora, analise=_analise(assinatura, agora_iso))
     return grafo, html_do_grafo(grafo)
+
+
+@st.cache_resource(max_entries=128)
+def _resumo(assinatura: str, agora_iso: str, chamado_id: str) -> dict[str, Any]:
+    agora = datetime.fromisoformat(agora_iso)
+    return resumo_do_caso(chamado_id, _base(assinatura), agora, analise=_analise(assinatura, agora_iso))
+
+
+@st.cache_data(max_entries=32)
+def _grupos(assinatura: str, agora_iso: str) -> dict[str, Any]:
+    agora = datetime.fromisoformat(agora_iso)
+    return grupos_dos_chamados(_base(assinatura), agora, analise=_analise(assinatura, agora_iso))["grupos"]
 
 
 @st.cache_data(max_entries=128)
@@ -167,22 +185,29 @@ def _texto(texto: str) -> None:
     st.text(limpar_texto(texto))
 
 
-def _citacao(dado: Any) -> None:
-    """Texto de terceiros: só em st.code, com a legenda de origem."""
+def _origem(fonte: str = "cliente") -> None:
+    """Ícone de origem com tooltip estático (cliente, creator ou texto de fora), abaixo de um texto de terceiros."""
+    st.caption(ICONE_ORIGEM, help=tooltip_origem(fonte))
+
+
+def _citacao(dado: Any, fonte: str = "cliente") -> None:
+    """Texto de terceiros: só em st.code, com o ícone de origem."""
     st.code(texto_citado(dado), language=None, wrap_lines=True)
-    st.caption(ORIGEM)
+    _origem(fonte)
 
 
 def _prova(prova: dict[str, Any]) -> None:
     st.markdown(f"- {escapar_md(prova['texto'])}")
     st.caption(f"fonte: {escapar_md(prova['fonte'])}")
     if prova.get("citacao"):
-        _citacao(prova["citacao"])
+        _citacao(prova["citacao"], prova["fonte"])
 
 
-def _topo() -> tuple[str, int]:
+def _topo() -> tuple[str, int, Any]:
+    """Título, selo, filtros. Devolve também o lugar (no topo) da contagem "X chamados → Y causas"."""
     st.title("Sentinela")
     st.badge(AVISO, icon=":material/science:", color="orange")
+    contagem = st.empty()
     c_centro, c_horas = st.columns([1, 2])
     centro = c_centro.selectbox("Centro de atendimento", ["Todos", *CENTROS], key="centro")
     horas = c_horas.slider("Simular +horas", 0, HORAS_MAX, 0, step=1, key="horas")
@@ -191,7 +216,11 @@ def _topo() -> tuple[str, int]:
         f"Relógio da demo: {AGORA_DEMO:%d/%m/%Y %H:%M} (fixo, os dados fictícios foram escritos em torno dele)"
         f" · agora efetivo: {agora:%d/%m/%Y %H:%M}"
     )
-    return centro, horas
+    return centro, horas, contagem
+
+
+def _contagem(lugar: Any, n_chamados: int, n_causas: int) -> None:
+    lugar.markdown(f"**{n_chamados} chamados → {n_causas} causas** · chamados com a mesma causa ficam juntos na fila")
 
 
 def _faixa_saques(saques: dict[str, Any]) -> None:
@@ -207,41 +236,94 @@ def _faixa_saques(saques: dict[str, Any]) -> None:
                 _prova(prova)
 
 
-def _item_fila(item: dict[str, Any], selecionado: str, acoes: list[dict[str, Any]]) -> None:
+def _badge(item: dict[str, Any]) -> str:
     faixa = nivel_seguro(item["faixa"])
+    return f":{cor_badge(faixa)}-badge[{faixa} · {item['total']:.0f}]"
+
+
+def _popover_score(item: dict[str, Any]) -> None:
+    with st.popover("Score"):
+        st.markdown(f"**Total: {escapar_md(str(item['total']))} de 100**")
+        for linha in linhas_score(item["parcelas"]):
+            st.markdown(escapar_md(linha))
+
+
+def _botao_abrir(chave: str, chamado_id: str, ativo: bool, rotulo: str = "Abrir caso") -> None:
+    st.button(rotulo, key=chave, on_click=_abrir, args=(chamado_id,), type="primary" if ativo else "secondary")
+
+
+def _alertas_da_fila(alertas: list[dict[str, Any]], com_botao: bool) -> None:
+    """Alertas de qualquer membro, fora do expander: frase fixa do core + ids da base (escapados)."""
+    for alerta in alertas:
+        if alerta["tipo"] == "injecao":
+            st.error(escapar_md(alerta["texto"]), icon=":material/report:")
+        else:
+            st.warning(escapar_md(alerta["texto"]), icon=":material/pause_circle:")
+        if com_botao:
+            prefixo = "alerta_abrir_" if alerta["tipo"] == "injecao" else "alerta_saque_abrir_"
+            for cid in alerta["ids"]:
+                st.button(f"Abrir caso {cid}", key=f"{prefixo}{cid}", on_click=_abrir, args=(cid,))
+
+
+def _item_fila(
+    item: dict[str, Any], selecionado: str, acoes: list[dict[str, Any]], alertas: list[dict[str, Any]] | None = None
+) -> None:
+    """Chamado isolado (nenhum outro com a mesma causa)."""
     with st.container(border=True):
-        st.markdown(f":{cor_badge(faixa)}-badge[{faixa} · {item['total']:.0f}] **{escapar_md(item['id'])}**")
+        st.markdown(f"{_badge(item)} **{escapar_md(item['id'])}**")
         st.caption(
             f"na fila · {escapar_md(item['id'])} · {escapar_md(item['centro'])}"
             f" · esperando {escapar_md(item['esperando'])}"
             f" · status: {escapar_md(status_do_chamado(acoes, item['id']))}"
         )
         st.text(texto_citado(item["assunto"]))
-        st.caption(ORIGEM)
+        _origem()
         st.caption(escapar_md(item["motivo"]))
+        _alertas_da_fila(alertas or [], com_botao=False)  # o próprio "Abrir caso" já abre este chamado
         with st.container(horizontal=True):
-            with st.popover("Score"):
-                st.markdown(f"**Total: {escapar_md(str(item['total']))} de 100**")
-                for linha in linhas_score(item["parcelas"]):
-                    st.markdown(escapar_md(linha))
-            st.button(
-                "Abrir caso",
-                key=f"abrir_{item['id']}",
-                on_click=_abrir,
-                args=(item["id"],),
-                type="primary" if item["id"] == selecionado else "secondary",
-            )
+            _popover_score(item)
+            _botao_abrir(f"abrir_{item['id']}", item["id"], item["id"] == selecionado)
 
 
-def _coluna_fila(itens: list[dict[str, Any]], selecionado: str | None, acoes: list[dict[str, Any]]) -> None:
+def _grupo_fila(grupo: dict[str, Any], selecionado: str, acoes: list[dict[str, Any]]) -> None:
+    """Vários chamados com a mesma causa: um item só, com o score do maior (o líder)."""
+    lider, membros = grupo["lider"], grupo["membros"]
+    with st.container(border=True):
+        st.markdown(f"{_badge(grupo)} **{escapar_md(grupo['titulo'])}**")
+        st.caption(
+            f"na fila · {escapar_md(grupo['centro'])} · maior espera {escapar_md(grupo['esperando'])}"
+            f" · caso do grupo: {escapar_md(lider['id'])}"
+        )
+        st.caption(escapar_md(grupo["motivo"]))
+        _alertas_da_fila(grupo["alertas"], com_botao=True)
+        with st.container(horizontal=True):
+            _popover_score(lider)
+            _botao_abrir(f"abrir_grupo_{lider['id']}", lider["id"], any(m["id"] == selecionado for m in membros))
+        with st.expander(f"Chamados do grupo ({len(membros)})"):
+            for m in membros:
+                st.markdown(f"{_badge(m)} **{escapar_md(m['id'])}**")
+                st.caption(
+                    f"na fila · {escapar_md(m['id'])} · esperando {escapar_md(m['esperando'])}"
+                    f" · status: {escapar_md(status_do_chamado(acoes, m['id']))}"
+                )
+                st.text(texto_citado(m["assunto"]))
+                _origem()
+                st.caption(escapar_md(m["motivo"]))
+                _botao_abrir(f"abrir_{m['id']}", m["id"], m["id"] == selecionado, f"Abrir caso {m['id']}")
+
+
+def _coluna_fila(grupos: list[dict[str, Any]], selecionado: str | None, acoes: list[dict[str, Any]]) -> None:
     st.subheader("Fila")
-    if not itens:
+    if not grupos:
         st.info("Nenhum chamado na fila deste centro.")
         return
-    st.caption(f"{len(itens)} chamados, do maior score para o menor (heap). Chamados antigos sobem com o tempo.")
+    st.caption("Do maior score para o menor (heap); um grupo assume o maior score. Chamados antigos sobem com o tempo.")
     with st.container(key="fila_itens"):
-        for item in itens:
-            _item_fila(item, selecionado or "", acoes)
+        for grupo in grupos:
+            if grupo["titulo"] is None:
+                _item_fila(grupo["lider"], selecionado or "", acoes, grupo["alertas"])
+            else:
+                _grupo_fila(grupo, selecionado or "", acoes)
 
 
 def _legenda() -> None:
@@ -259,14 +341,17 @@ def _legenda() -> None:
 def _coluna_grafo(assinatura: str, agora_iso: str, chamado_id: str) -> None:
     st.subheader("Grafo de ligações")
     grafo, html = _grafo(assinatura, agora_iso, chamado_id)
-    st.iframe(html, height=ALTURA_PX + 20)
+    # Resumo da distância sempre visível; o desenho e o caminho ficam em expanders fechados.
     texto = escapar_md(grafo["distancia_texto"])
     st.markdown(f":red[**{texto}**]" if grafo["ligacoes_ate_fraude"] is not None else f"**{texto}**")
+    with st.expander(f"Ver o grafo ({len(grafo['vertices'])} vértices)", icon=":material/hub:"):
+        # O HTML do grafo faz fit() no 1º resize com tamanho real (o iframe nasce com largura 0 aqui).
+        st.iframe(html, height=ALTURA_PX + 20)
+        _legenda()
     caminho = _caso(assinatura, agora_iso, chamado_id)["distancia_fraude"]["caminho"]
     if caminho:
-        st.caption("Caminho mais curto (Dijkstra)")
-        _texto(" → ".join(caminho))
-    _legenda()
+        with st.expander("Caminho mais curto até a fraude (Dijkstra)", icon=":material/route:"):
+            _texto(" → ".join(caminho))
 
 
 def _historico(h: dict[str, Any]) -> None:
@@ -341,6 +426,28 @@ def _registro_da_sessao(acoes: list[dict[str, Any]]) -> None:
                 _texto(f"   {a['observacao']}")
 
 
+def _cartao_resumo(r: dict[str, Any]) -> None:
+    """4 linhas para entender o caso em 10 segundos. Só fatos: nenhuma sugestão de decisão."""
+    # Ponto de extensão (fora do protótipo): com chave em st.secrets, um LLM poderia só REESCREVER
+    # r["causa"] em linguagem simples, recebendo o texto do usuário delimitado como dado.
+    # Nunca decide, nunca muda causa, rota ou score. No deploy público fica desligado.
+    confianca = nivel_seguro(r["confianca"])
+    with st.container(border=True, key="cartao_resumo"):
+        st.markdown(
+            f":{cor_badge(confianca, 'confianca')}-badge[confiança {confianca}]"
+            f" **Causa provável:** {escapar_md(r['causa'])}"
+        )
+        st.markdown(f":material/groups: {escapar_md(r['afeta_texto'])}")
+        st.markdown(f":material/payments: {escapar_md(r['valor_texto'])}")
+        st.markdown(f":material/alt_route: Setor de destino: **{escapar_md(r['centro'])}**")
+        # Alerta de QUALQUER chamado do grupo (o líder não esconde o de outro membro).
+        for alerta in r["alertas_grupo"]:
+            if alerta["tipo"] == "injecao":
+                st.error(escapar_md(alerta["texto"]), icon=":material/report:")
+            else:
+                st.warning(escapar_md(alerta["texto"]), icon=":material/pause_circle:")
+
+
 def _coluna_caso(assinatura: str, agora_iso: str, chamado_id: str, agora: datetime, acoes: list[dict[str, Any]]) -> None:
     caso = _caso(assinatura, agora_iso, chamado_id)
     ch, causa = caso["chamado"], caso["causa"]
@@ -349,20 +456,15 @@ def _coluna_caso(assinatura: str, agora_iso: str, chamado_id: str, agora: dateti
         f"{escapar_md(ch['id'])} · {escapar_md(ch['tipo'])} · esperando {escapar_md(ch['esperando'])}"
         f" · status: {escapar_md(status_do_chamado(acoes, chamado_id))}"
     )
+    _cartao_resumo(_resumo(assinatura, agora_iso, chamado_id))
     _texto(f"Autor: {ch['autor']}")
     _texto(f"Assunto: {texto_citado(ch['assunto'])}")
-    st.caption(ORIGEM)
+    _origem()
 
-    # Ponto de extensão (fora do protótipo): com chave em st.secrets, um LLM poderia só REESCREVER
-    # causa["descricao"] em linguagem simples, recebendo o texto do usuário delimitado como dado.
-    # Nunca decide, nunca muda causa, rota ou score. No deploy público fica desligado.
-    confianca = nivel_seguro(causa["confianca"])
-    st.markdown(f"**Causa provável** :{cor_badge(confianca, 'confianca')}-badge[confiança {confianca}]")
-    st.markdown(escapar_md(causa["descricao"]))
     if causa["provas"]:
-        st.markdown("**Provas**")
-        for prova in causa["provas"]:
-            _prova(prova)
+        with st.expander(f"Provas ({len(causa['provas'])})", icon=":material/fact_check:"):
+            for prova in causa["provas"]:
+                _prova(prova)
 
     st.markdown("**Texto do chamado**")
     _citacao(ch["texto"])
@@ -370,7 +472,7 @@ def _coluna_caso(assinatura: str, agora_iso: str, chamado_id: str, agora: dateti
         st.error(escapar_md(alerta["mensagem"]), icon=":material/report:")
         st.caption(f"fonte: {escapar_md(alerta['fonte'])} · {escapar_md(alerta['efeito'])}")
         for trecho in alerta["trechos"]:
-            _citacao(trecho)
+            _citacao(trecho, alerta["fonte"])
 
     _historico(caso["historico"])
     _alerta_seguranca(caso["alerta_seguranca"])
@@ -393,13 +495,15 @@ def main() -> None:
     st.session_state.setdefault("acoes", [])
 
     assinatura = _assinatura()
-    centro, horas = _topo()
+    centro, horas, lugar_contagem = _topo()
     agora = agora_simulado(horas)
     agora_iso = agora.isoformat()
     _faixa_saques(_saques(assinatura, agora_iso))
     _selecao_inicial(assinatura)
 
     itens = _fila(assinatura, agora_iso, centro)["itens"]
+    grupos = agrupar_fila(itens, _grupos(assinatura, agora_iso))
+    _contagem(lugar_contagem, len(itens), len(grupos))
     ids = [i["id"] for i in itens]
     # A escolha do atendente sobrevive à troca de filtro; a seleção efetiva é derivada a cada rerun.
     escolha = st.session_state.get("chamado_escolhido")
@@ -409,7 +513,7 @@ def main() -> None:
     with st.container(key="layout"):
         col_fila, col_caso, col_grafo = st.columns([1.05, 1.3, 1.35], gap="medium")
         with col_fila:
-            _coluna_fila(itens, selecionado, acoes)
+            _coluna_fila(grupos, selecionado, acoes)
         if selecionado is None:
             col_caso.info("Sem chamado para montar o caso.")
             col_grafo.info("Sem chamado para mostrar o grafo.")

@@ -159,3 +159,54 @@ def test_falha_alto_se_o_template_mudar(monkeypatch):
     monkeypatch.setattr(Network, "generate_html", lambda self, *a, **k: "<html><head></head><body></body></html>")
     with pytest.raises(RuntimeError):
         html_do_grafo(_grafo_minimo("@x"))
+
+
+# ---------------------------------------------------------------- legibilidade (revisão de UX)
+from sentinela.ui.grafo_html import LIMITE_LABEL, _OPCOES  # noqa: E402
+
+LONGO = "Curso Completo de Fotografia Mobile Avançada"
+
+
+def test_label_curto_e_title_com_rotulo_completo_e_seguro():
+    rede = montar_rede(_grafo_minimo(LONGO + " <b>"))
+    no = next(n for n in rede.nodes if n["id"] == "cr-1")
+    assert LIMITE_LABEL == 18
+    assert len(no["label"]) <= LIMITE_LABEL and no["label"].endswith("…")
+    assert LONGO[:30] in no["title"]  # tooltip guarda o rótulo inteiro (até o limite seguro)
+    assert not any(c in no["title"] + no["label"] for c in PERIGOSOS)
+
+
+def test_label_curto_nao_corta_rotulo_que_cabe():
+    rede = montar_rede(_grafo_minimo("@promo.top"))
+    assert next(n for n in rede.nodes if n["id"] == "cr-1")["label"] == "@promo.top"
+
+
+def test_fisica_espalha_para_os_rotulos_nao_se_sobreporem():
+    fisica = _OPCOES["physics"]
+    assert fisica["solver"] == "barnesHut"
+    bh = fisica["barnesHut"]
+    assert bh["gravitationalConstant"] <= -8000
+    assert bh["springLength"] >= 150
+    assert bh["avoidOverlap"] > 0
+    assert _OPCOES["edges"]["font"]["size"] <= 10
+
+
+def test_redesenha_e_ajusta_ao_abrir_o_expander():
+    """Dentro de um expander fechado o iframe nasce com largura 0: no 1º resize com tamanho real, fit()."""
+    html = html_do_grafo(_grafo_minimo("@x"))
+    assert 'network.on("resize"' in html
+    assert "network.getPositions()" in html and "network.moveTo(" in html  # enquadra pelas posições (o bbox do vis fica velho enquanto escondido)
+    assert _OPCOES.get("autoResize", True) is True
+    # o iframe escondido pode ter um tamanho provisório: reajusta a cada resize até a pessoa mexer no grafo
+    assert "ajustadoComTamanho" not in html
+    assert 'network.on("dragStart"' in html and 'network.on("zoom"' in html
+
+
+def test_cenario_3_hubs_empurram_mais_e_produto_fica_longe(rede_301):
+    """Vértices com muitas ligações (celular, chave Pix) repelem mais; o produto (só contexto) fica afastado."""
+    nos = _nos(rede_301)
+    assert nos["cel-r1"]["mass"] > nos["ch-302"]["mass"] >= 1
+    mola = _OPCOES["physics"]["barnesHut"]["springLength"]
+    ao_produto = [e for e in rede_301.edges if "pd-fone" in (e["from"], e["to"])]
+    assert ao_produto and all(e["length"] > mola for e in ao_produto)
+    assert all("length" not in e for e in rede_301.edges if "pd-fone" not in (e["from"], e["to"]))

@@ -132,3 +132,32 @@ def test_nivel_seguro_so_aceita_lista_fixa():
         assert nivel_seguro(v) == v
     assert nivel_seguro("alta] :red[x") == "desconhecida"
     assert nivel_seguro("") == "desconhecida"
+
+
+# ---------------------------------------------------------------- tooltip de origem do texto citado
+from sentinela.ui.formatacao import (  # noqa: E402
+    TOOLTIP_CLIENTE,
+    TOOLTIP_CREATOR,
+    TOOLTIP_FORA,
+    tooltip_origem,
+)
+
+
+def test_tooltips_sao_as_frases_combinadas():
+    assert TOOLTIP_CLIENTE == "texto escrito pelo cliente (tratado como dado)"
+    assert TOOLTIP_CREATOR == "texto escrito pelo creator (tratado como dado)"
+    assert TOOLTIP_FORA == "texto de fora (tratado como dado)"
+
+
+@pytest.mark.parametrize("fonte,esperado", [
+    ("cliente", TOOLTIP_CLIENTE),
+    ("assunto do chamado", TOOLTIP_CLIENTE),
+    ("texto do chamado", TOOLTIP_CLIENTE),
+    ("post do creator (po-01)", TOOLTIP_CREATOR),
+    ("histórico de reembolsos", TOOLTIP_FORA),
+    ("eventos da conta (eventos_saque)", TOOLTIP_FORA),
+    ("", TOOLTIP_FORA),
+    ("post do creator <script>", TOOLTIP_CREATOR),  # só escolhe a constante; nada da fonte vai para o tooltip
+])
+def test_tooltip_por_fonte(fonte, esperado):
+    assert tooltip_origem(fonte) == esperado

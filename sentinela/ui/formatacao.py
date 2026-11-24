@@ -78,3 +78,19 @@ def _numero(valor: float) -> str:
 def linhas_score(parcelas: Iterable[Mapping[str, Any]]) -> list[str]:
     """Uma linha por parcela: 'segurança: 40 de 40 · explicação' (ordem do core)."""
     return [f"{p['nome']}: {_numero(p['pontos'])} de {_numero(p['maximo'])} · {p['explicacao']}" for p in parcelas]
+
+
+# Tooltip do ícone de origem: constantes estáticas, escolhidas pela fonte que o core informa.
+TOOLTIP_CLIENTE = "texto escrito pelo cliente (tratado como dado)"
+TOOLTIP_CREATOR = "texto escrito pelo creator (tratado como dado)"
+TOOLTIP_FORA = "texto de fora (tratado como dado)"
+_FONTES_CLIENTE = frozenset({"cliente", "assunto do chamado", "texto do chamado"})
+
+
+def tooltip_origem(fonte: str) -> str:
+    """Assunto/texto do chamado -> cliente; post do creator -> creator; resto -> texto de fora."""
+    if fonte in _FONTES_CLIENTE:
+        return TOOLTIP_CLIENTE
+    if str(fonte).startswith("post do creator"):
+        return TOOLTIP_CREATOR
+    return TOOLTIP_FORA
