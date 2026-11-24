@@ -14,11 +14,11 @@ O Sentinela entrega ao atendente o caso montado (causa provável, provas e risco
 
 ## Demo
 
-**https://SEU-APP.streamlit.app** (link após o deploy)
+**https://sentinela-youshop.streamlit.app**
 
 Abre sem login, no celular e no desktop. Para abrir direto num chamado, use o atalho `?chamado=ch-301`
 (a URL acompanha o caso aberto, então dá para copiar e compartilhar)
-(ex.: `https://SEU-APP.streamlit.app/?chamado=ch-301`).
+(ex.: `https://sentinela-youshop.streamlit.app/?chamado=ch-301`).
 
 ## Prints
 
@@ -169,7 +169,7 @@ O pacote `mcp==1.30.0` está fixado porque o `FastMCP` usado aqui existe na sér
 3. Escolha o repositório `matheusjose04/sentinela-youshop`, a branch `main` e o arquivo `app.py`.
 4. Em **Advanced settings**, escolha Python 3.12. Não é preciso nenhum secret.
 5. Clique em **Deploy** e aguarde o build (ele instala o `requirements.txt`).
-6. Copie a URL do app e troque `https://SEU-APP.streamlit.app` neste README.
+6. Copie a URL do app e troque `https://sentinela-youshop.streamlit.app` neste README.
 7. Teste no celular e no desktop, numa janela anônima, para confirmar que abre sem login.
 8. Opcional: personalize o subdomínio nas configurações do app.
 
