@@ -9,12 +9,40 @@ Regras desta tela:
 from __future__ import annotations
 
 import re
+import sys
+import types
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import streamlit as st
 
-from sentinela.core.caso import (
+
+def _recarregar_sentinela_se_mudou() -> None:
+    """Descarta os módulos `sentinela.*` da memória se algum .py do pacote mudou no disco.
+
+    No Streamlit Cloud, um push atualiza os arquivos e reexecuta este app.py no MESMO processo,
+    mas os módulos já importados continuam em memória (versão antiga). Resultado: ImportError
+    de uma função nova. Aqui comparamos a assinatura (caminho + mtime) dos .py com a última vista;
+    se mudou, removemos `sentinela.*` de sys.modules e limpamos os caches para reimportar do zero.
+    """
+    raiz = Path(__file__).resolve().parent / "sentinela"
+    atual = tuple(sorted((str(p), p.stat().st_mtime_ns) for p in raiz.rglob("*.py")))
+    # Guardado num módulo próprio em sys.modules porque sobrevive às reexecuções do script.
+    estado = sys.modules.setdefault("_sentinela_recarga", types.ModuleType("_sentinela_recarga"))
+    anterior = getattr(estado, "assinatura", None)
+    estado.assinatura = atual
+    if anterior is None or anterior == atual:
+        return
+    for nome in [n for n in sys.modules if n == "sentinela" or n.startswith("sentinela.")]:
+        del sys.modules[nome]
+    st.cache_data.clear()
+    st.cache_resource.clear()
+
+
+_recarregar_sentinela_se_mudou()
+
+from sentinela.core.caso import (  # noqa: E402  (precisa vir depois da recarga acima)
     AVISO,
     alertas_saque_para_saida,
     analisar,

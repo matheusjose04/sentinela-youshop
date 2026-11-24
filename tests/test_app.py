@@ -458,3 +458,30 @@ def test_membros_do_grupo_com_badge_e_por_que(app):
     md = " ".join(m.value for m in exp.markdown)
     assert r"**ch\-302**" in md and "-badge[alta · 57]" in md
     assert sum(c.value.startswith("Sobe") for c in exp.caption) == 3
+
+
+def test_push_com_modulo_antigo_em_memoria_nao_quebra(app: AppTest, monkeypatch):
+    """Regressão do Streamlit Cloud: um push reexecuta o app.py, mas sentinela.* antigos ficam em memória.
+
+    Simula o módulo antigo (sem uma função nova) e um .py do pacote com mtime novo:
+    o app deve descartar os módulos velhos e reimportar, sem ImportError.
+    """
+    import os
+    import sys
+
+    import sentinela.core.caso as caso_antigo
+
+    salvos = {n: m for n, m in sys.modules.items() if n == "sentinela" or n.startswith("sentinela.")}
+    alvo = Path(caso_antigo.__file__)
+    tempos = alvo.stat()
+    monkeypatch.delattr(caso_antigo, "grupos_dos_chamados")  # "versão antiga" ainda em memória
+    try:
+        os.utime(alvo, ns=(tempos.st_atime_ns, tempos.st_mtime_ns + 1_000_000_000))  # o push trouxe arquivo novo
+        app.run()
+        assert not app.exception, [e.value for e in app.exception]
+        assert "grupos_dos_chamados" in vars(sys.modules["sentinela.core.caso"])
+    finally:
+        os.utime(alvo, ns=(tempos.st_atime_ns, tempos.st_mtime_ns))
+        for nome in [n for n in sys.modules if n == "sentinela" or n.startswith("sentinela.")]:
+            del sys.modules[nome]
+        sys.modules.update(salvos)
