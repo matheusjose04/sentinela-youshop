@@ -8,6 +8,7 @@ Regras desta tela:
 """
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Any
 
@@ -38,6 +39,10 @@ from sentinela.ui.grafo_html import ALTURA_PX, TIPO_VISUAL, html_do_grafo
 
 STATUS_SAQUE = {"em_espera": "em espera, revisão humana"}
 ORIGEM = "dado de terceiros"
+# ?chamado=ch-301 na URL: só formato fixo, curto e ASCII. Usado com fullmatch, porque
+# com match o "$" aceitaria uma quebra de linha no fim.
+PADRAO_LINK = re.compile(r"^ch-[0-9]{3,6}$")
+LINK_MAX = 20
 AVISO_DEVOLVER = "aviso_devolver"  # {"chamado": id, "ok": bool}, mostrado uma vez depois do form
 
 # CSS 100% estático (nenhum texto de usuário).
@@ -100,9 +105,32 @@ def _saques(assinatura: str, agora_iso: str) -> dict[str, Any]:
     return alertas_saque_para_saida(_base(assinatura), datetime.fromisoformat(agora_iso))
 
 
+# ---------------------------------------------------------------- link
+def _chamado_do_link(existentes: Any) -> str | None:
+    """Id vindo de ?chamado=, se válido e existente na base; senão None (ignorado em silêncio)."""
+    valor = st.query_params.get("chamado")
+    if not isinstance(valor, str) or len(valor) > LINK_MAX:
+        return None  # tamanho antes da regex: nada grande chega ao re
+    if not PADRAO_LINK.fullmatch(valor) or valor not in existentes:
+        return None
+    return valor
+
+
+def _selecao_inicial(assinatura: str) -> None:
+    """O link só vale enquanto o atendente não escolheu nada; depois o clique prevalece."""
+    if "chamado_escolhido" in st.session_state:
+        return
+    cid = _chamado_do_link(_base(assinatura).chamados)
+    if cid is not None:
+        st.session_state["chamado_escolhido"] = cid
+
+
 # ---------------------------------------------------------------- ações (callbacks: rodam ANTES do script)
 def _abrir(chamado_id: str) -> None:
     st.session_state["chamado_escolhido"] = chamado_id
+    # A URL acompanha o caso aberto: quem copiar o link compartilha o caso que está na tela.
+    # O id veio da própria fila (já validado), nunca do usuário.
+    st.query_params["chamado"] = chamado_id
 
 
 def _registrar(**campos: Any) -> None:
@@ -369,6 +397,7 @@ def main() -> None:
     agora = agora_simulado(horas)
     agora_iso = agora.isoformat()
     _faixa_saques(_saques(assinatura, agora_iso))
+    _selecao_inicial(assinatura)
 
     itens = _fila(assinatura, agora_iso, centro)["itens"]
     ids = [i["id"] for i in itens]

@@ -227,3 +227,60 @@ def test_app_reusa_a_assinatura_do_core():
     fonte = (Path(__file__).resolve().parent.parent / "app.py").read_text(encoding="utf-8")
     assert "hashlib" not in fonte
     assert "dados.assinatura()" in fonte or "assinatura as _assinatura_core" in fonte
+
+
+# ---------------------------------------------------------------- link com ?chamado=
+def _app_com_link(valor: str) -> AppTest:
+    import streamlit as st
+
+    st.cache_data.clear()
+    st.cache_resource.clear()
+    at = AppTest.from_file(APP, default_timeout=60)
+    at.query_params["chamado"] = valor
+    at.run()
+    assert not at.exception, [e.value for e in at.exception]
+    return at
+
+
+def _caso_aberto(at: AppTest) -> str:
+    """Id do chamado no cabeçalho do caso montado (caption "ch\\-301 · ...")."""
+    for c in at.caption:
+        m = re.match(r"^ch\\-(\d+) ·", c.value)
+        if m:
+            return f"ch-{m.group(1)}"
+    raise AssertionError("nenhum caso aberto")
+
+
+def test_link_abre_o_chamado_pedido():
+    at = _app_com_link("ch-301")
+    assert _caso_aberto(at) == "ch-301"
+    assert at.session_state["chamado_escolhido"] == "ch-301"
+
+
+@pytest.mark.parametrize("valor", ["ch-999", "../x", "<script>", "ch-301" + "0" * 20, "CH-301", " ch-301",
+                                   "ch-301\n", "ch-３０１"])
+def test_link_invalido_cai_no_padrao_sem_aviso(valor):
+    at = _app_com_link(valor)
+    assert _caso_aberto(at) == "ch-401"  # primeiro da fila, como sem link
+    assert "chamado_escolhido" not in at.session_state
+    assert not any("chamado" in str(w.value).lower() and "link" in str(w.value).lower()
+                   for w in (*at.warning, *at.error))
+
+
+def test_clique_prevalece_sobre_o_link():
+    at = _app_com_link("ch-301")
+    at.button(key="abrir_ch-601").click().run()
+    assert not at.exception
+    assert _caso_aberto(at) == "ch-601"
+    assert at.query_params["chamado"] == "ch-601"  # a URL acompanha o caso aberto
+    at.run()
+    assert _caso_aberto(at) == "ch-601"
+
+
+def test_link_fora_do_filtro_mantem_a_escolha():
+    at = _app_com_link("ch-301")  # ch-301 é de Operações
+    at.selectbox(key="centro").set_value("Comprador").run()
+    assert at.session_state["chamado_escolhido"] == "ch-301"
+    assert _caso_aberto(at) == "ch-701"
+    at.selectbox(key="centro").set_value("Todos").run()
+    assert _caso_aberto(at) == "ch-301"
