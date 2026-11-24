@@ -1,0 +1,272 @@
+[
+  {
+    "origem": "cr-lu.dicas",
+    "destino": "pd-excel",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-planilha.facil",
+    "destino": "pd-excel",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cp-11",
+    "destino": "pd-excel",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-12",
+    "destino": "pd-excel",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-13",
+    "destino": "pd-excel",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-14",
+    "destino": "pd-excel",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-15",
+    "destino": "pd-excel",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-16",
+    "destino": "pd-excel",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cr-bela.pele",
+    "destino": "pd-serum",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-skin.diaria",
+    "destino": "pd-serum",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-glow.br",
+    "destino": "pd-serum",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-rotina.leve",
+    "destino": "pd-serum",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cp-21",
+    "destino": "pd-serum",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-22",
+    "destino": "pd-serum",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-23",
+    "destino": "pd-serum",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-24",
+    "destino": "pd-serum",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-25",
+    "destino": "pd-serum",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-26",
+    "destino": "pd-serum",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-27",
+    "destino": "pd-serum",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cr-promo.top",
+    "destino": "pd-fone",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-promo.top",
+    "destino": "cel-r1",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cr-promo.top",
+    "destino": "pix-r1",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cr-ofertaja",
+    "destino": "pd-fone",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-ofertaja",
+    "destino": "cel-r1",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cr-ofertaja",
+    "destino": "pix-r1",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cr-achadinhos",
+    "destino": "pd-fone",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-achadinhos",
+    "destino": "cel-r1",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cr-achadinhos",
+    "destino": "pix-r1",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cr-cupom.fake",
+    "destino": "cel-r1",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cr-cupom.fake",
+    "destino": "pix-r1",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cr-vitrine.express",
+    "destino": "pd-fone",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-vitrine.express",
+    "destino": "pix-r1",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cp-31",
+    "destino": "pd-fone",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-31",
+    "destino": "cel-r1",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cp-32",
+    "destino": "pd-fone",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-32",
+    "destino": "cel-r1",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cp-33",
+    "destino": "pd-fone",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cr-rafa.fit",
+    "destino": "pd-treino",
+    "rotulo": "divulga"
+  },
+  {
+    "origem": "cr-rafa.fit",
+    "destino": "cel-rf1",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cr-rafa.fit",
+    "destino": "cel-rf2",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cr-rafa.fit",
+    "destino": "pix-rf1",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cr-rafa.fit",
+    "destino": "pix-rf2",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cr-cupons.mega",
+    "destino": "cel-rf2",
+    "rotulo": "usou celular"
+  },
+  {
+    "origem": "cr-cupons.mega",
+    "destino": "pix-rf2",
+    "rotulo": "saca para"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-51",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-52",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-53",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-54",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-55",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-56",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-57",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-58",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-50",
+    "destino": "pd-59",
+    "rotulo": "comprou"
+  },
+  {
+    "origem": "cp-70",
+    "destino": "pd-violao",
+    "rotulo": "comprou"
+  }
+]

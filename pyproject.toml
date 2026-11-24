@@ -1,0 +1,9 @@
+[project]
+name = "sentinela"
+version = "0.1.0"
+description = "Sentinela: caso montado e grafo de ligações para o atendimento (protótipo, dados fictícios)"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

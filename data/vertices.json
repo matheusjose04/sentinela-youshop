@@ -1,0 +1,376 @@
+[
+  {
+    "id": "pd-excel",
+    "tipo": "produto",
+    "rotulo": "Curso Excel Pro",
+    "produtor": "Escola Planilha Viva",
+    "oferece": [
+      "certificado_de_conclusao",
+      "videoaulas"
+    ]
+  },
+  {
+    "id": "cr-lu.dicas",
+    "tipo": "creator",
+    "rotulo": "@lu.dicas",
+    "ip": "192.0.2.101"
+  },
+  {
+    "id": "cr-planilha.facil",
+    "tipo": "creator",
+    "rotulo": "@planilha.facil",
+    "ip": "192.0.2.102"
+  },
+  {
+    "id": "cp-11",
+    "tipo": "comprador",
+    "rotulo": "Comprador Bruno A.",
+    "cpf": "111.222.311-81",
+    "ip": "192.0.2.10"
+  },
+  {
+    "id": "cp-12",
+    "tipo": "comprador",
+    "rotulo": "Comprador Carla M.",
+    "cpf": "111.222.312-62",
+    "ip": "198.51.100.11"
+  },
+  {
+    "id": "cp-13",
+    "tipo": "comprador",
+    "rotulo": "Comprador Diego S.",
+    "cpf": "111.222.313-43",
+    "ip": "192.0.2.12"
+  },
+  {
+    "id": "cp-14",
+    "tipo": "comprador",
+    "rotulo": "Comprador Elisa T.",
+    "cpf": "111.222.314-24",
+    "ip": "198.51.100.13"
+  },
+  {
+    "id": "cp-15",
+    "tipo": "comprador",
+    "rotulo": "Comprador Fábio N.",
+    "cpf": "111.222.315-05",
+    "ip": "192.0.2.14"
+  },
+  {
+    "id": "cp-16",
+    "tipo": "comprador",
+    "rotulo": "Comprador Gabi R.",
+    "cpf": "111.222.316-96",
+    "ip": "198.51.100.15"
+  },
+  {
+    "id": "pd-serum",
+    "tipo": "produto",
+    "rotulo": "Kit Sérum X",
+    "produtor": "Laboratório Aurora",
+    "oferece": [
+      "frete_gratis"
+    ]
+  },
+  {
+    "id": "cr-bela.pele",
+    "tipo": "creator",
+    "rotulo": "@bela.pele",
+    "ip": "192.0.2.110"
+  },
+  {
+    "id": "cr-skin.diaria",
+    "tipo": "creator",
+    "rotulo": "@skin.diaria",
+    "ip": "192.0.2.111"
+  },
+  {
+    "id": "cr-glow.br",
+    "tipo": "creator",
+    "rotulo": "@glow.br",
+    "ip": "192.0.2.112"
+  },
+  {
+    "id": "cr-rotina.leve",
+    "tipo": "creator",
+    "rotulo": "@rotina.leve",
+    "ip": "192.0.2.113"
+  },
+  {
+    "id": "cp-21",
+    "tipo": "comprador",
+    "rotulo": "Comprador Helena V.",
+    "cpf": "222.333.421-01",
+    "ip": "192.0.2.16"
+  },
+  {
+    "id": "cp-22",
+    "tipo": "comprador",
+    "rotulo": "Comprador Igor P.",
+    "cpf": "222.333.422-92",
+    "ip": "198.51.100.17"
+  },
+  {
+    "id": "cp-23",
+    "tipo": "comprador",
+    "rotulo": "Comprador Júlia C.",
+    "cpf": "222.333.423-73",
+    "ip": "192.0.2.18"
+  },
+  {
+    "id": "cp-24",
+    "tipo": "comprador",
+    "rotulo": "Comprador Kauê B.",
+    "cpf": "222.333.424-54",
+    "ip": "198.51.100.19"
+  },
+  {
+    "id": "cp-25",
+    "tipo": "comprador",
+    "rotulo": "Comprador Laura D.",
+    "cpf": "222.333.425-35",
+    "ip": "192.0.2.20"
+  },
+  {
+    "id": "cp-26",
+    "tipo": "comprador",
+    "rotulo": "Comprador Marcos E.",
+    "cpf": "222.333.426-16",
+    "ip": "198.51.100.21"
+  },
+  {
+    "id": "cp-27",
+    "tipo": "comprador",
+    "rotulo": "Comprador Nina F.",
+    "cpf": "222.333.427-05",
+    "ip": "192.0.2.22"
+  },
+  {
+    "id": "pd-fone",
+    "tipo": "produto",
+    "rotulo": "Fone Bluetooth Z",
+    "produtor": "Eletro Sul",
+    "oferece": [
+      "garantia_90_dias"
+    ]
+  },
+  {
+    "id": "cel-r1",
+    "tipo": "celular",
+    "rotulo": "Celular •7731 (Android)"
+  },
+  {
+    "id": "pix-r1",
+    "tipo": "chave_pix",
+    "rotulo": "Chave Pix (e-mail)",
+    "chave_pix": "repasse.ofertas@example.com"
+  },
+  {
+    "id": "cr-cupom.fake",
+    "tipo": "creator",
+    "rotulo": "@cupom.fake",
+    "fraude_confirmada": true,
+    "ip": "203.0.113.50"
+  },
+  {
+    "id": "cr-promo.top",
+    "tipo": "creator",
+    "rotulo": "@promo.top",
+    "ip": "203.0.113.50"
+  },
+  {
+    "id": "cr-ofertaja",
+    "tipo": "creator",
+    "rotulo": "@ofertaja",
+    "ip": "203.0.113.50"
+  },
+  {
+    "id": "cr-achadinhos",
+    "tipo": "creator",
+    "rotulo": "@achadinhos",
+    "ip": "203.0.113.50"
+  },
+  {
+    "id": "cr-vitrine.express",
+    "tipo": "creator",
+    "rotulo": "@vitrine.express",
+    "ip": "203.0.113.51"
+  },
+  {
+    "id": "cp-31",
+    "tipo": "comprador",
+    "rotulo": "Comprador Otávio L.",
+    "cpf": "333.444.531-31",
+    "ip": "198.51.100.23"
+  },
+  {
+    "id": "cp-32",
+    "tipo": "comprador",
+    "rotulo": "Comprador Paula Q.",
+    "cpf": "333.444.532-12",
+    "ip": "192.0.2.24"
+  },
+  {
+    "id": "cp-33",
+    "tipo": "comprador",
+    "rotulo": "Compradora Rita S.",
+    "cpf": "333.444.533-01",
+    "ip": "198.51.100.25"
+  },
+  {
+    "id": "cr-rafa.fit",
+    "tipo": "creator",
+    "rotulo": "@rafa.fit",
+    "ip": "192.0.2.140"
+  },
+  {
+    "id": "pd-treino",
+    "tipo": "produto",
+    "rotulo": "Treino em Casa 30D",
+    "produtor": "Studio Move",
+    "oferece": [
+      "videoaulas"
+    ]
+  },
+  {
+    "id": "cel-rf1",
+    "tipo": "celular",
+    "rotulo": "Celular •2290 (iPhone)"
+  },
+  {
+    "id": "cel-rf2",
+    "tipo": "celular",
+    "rotulo": "Celular •9054 (Android)"
+  },
+  {
+    "id": "pix-rf1",
+    "tipo": "chave_pix",
+    "rotulo": "Chave Pix (telefone)",
+    "chave_pix": "+55 11 90000-2290"
+  },
+  {
+    "id": "pix-rf2",
+    "tipo": "chave_pix",
+    "rotulo": "Chave Pix (aleatória)",
+    "chave_pix": "7f3c9a12-4b5e-4c6d-8e9f-0a1b2c3d9f3c"
+  },
+  {
+    "id": "cr-cupons.mega",
+    "tipo": "creator",
+    "rotulo": "@cupons.mega",
+    "ip": "203.0.113.77"
+  },
+  {
+    "id": "cp-50",
+    "tipo": "comprador",
+    "rotulo": "Comprador Tiago R.",
+    "cpf": "555.666.777-21",
+    "ip": "192.0.2.26"
+  },
+  {
+    "id": "pd-51",
+    "tipo": "produto",
+    "rotulo": "Curso de Inglês Rápido",
+    "produtor": "Idiomas Já",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-52",
+    "tipo": "produto",
+    "rotulo": "Curso de Oratória",
+    "produtor": "Fala Bem",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-53",
+    "tipo": "produto",
+    "rotulo": "Curso de Marketing Digital",
+    "produtor": "Agência Escola",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-54",
+    "tipo": "produto",
+    "rotulo": "Curso de Python Básico",
+    "produtor": "Código Fácil",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-55",
+    "tipo": "produto",
+    "rotulo": "Curso de Culinária Vegana",
+    "produtor": "Cozinha Verde",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-56",
+    "tipo": "produto",
+    "rotulo": "Curso de Finanças Pessoais",
+    "produtor": "Bolso Cheio",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-57",
+    "tipo": "produto",
+    "rotulo": "Curso de Desenho",
+    "produtor": "Traço Livre",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-58",
+    "tipo": "produto",
+    "rotulo": "Curso Fotografia Mobile",
+    "produtor": "Foco Total",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "pd-59",
+    "tipo": "produto",
+    "rotulo": "Curso de Xadrez",
+    "produtor": "Lance Certo",
+    "oferece": [
+      "videoaulas",
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "cp-70",
+    "tipo": "comprador",
+    "rotulo": "Compradora Ana P.",
+    "cpf": "777.888.999-42",
+    "ip": "198.51.100.27"
+  },
+  {
+    "id": "pd-violao",
+    "tipo": "produto",
+    "rotulo": "Curso Violão Básico",
+    "produtor": "Som de Casa",
+    "oferece": [
+      "videoaulas"
+    ]
+  }
+]

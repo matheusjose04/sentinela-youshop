@@ -1,0 +1,29 @@
+[
+  {
+    "id": "po-01",
+    "creator_id": "cr-lu.dicas",
+    "produto_id": "pd-excel",
+    "texto": "Curso Excel Pro com certificado reconhecido pelo MEC! Garanta o seu pelo link da bio.",
+    "em": "2026-11-10T19:00:00-03:00",
+    "promete": [
+      "certificado_mec"
+    ]
+  },
+  {
+    "id": "po-02",
+    "creator_id": "cr-planilha.facil",
+    "produto_id": "pd-excel",
+    "texto": "Aprenda Excel do zero no Curso Excel Pro, com certificado de conclusão.",
+    "em": "2026-11-12T12:00:00-03:00",
+    "promete": [
+      "certificado_de_conclusao"
+    ]
+  },
+  {
+    "id": "po-03",
+    "creator_id": "cr-glow.br",
+    "produto_id": "pd-serum",
+    "texto": "Meu sérum favorito do momento, textura leve.",
+    "em": "2026-11-08T10:00:00-03:00"
+  }
+]

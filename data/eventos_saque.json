@@ -1,0 +1,47 @@
+[
+  {
+    "id": "e-41",
+    "creator_id": "cr-rafa.fit",
+    "tipo": "login_celular_novo",
+    "em": "2026-11-20T14:20:00-03:00",
+    "detalhe": "(Celular •9054, nunca usado nesta conta)"
+  },
+  {
+    "id": "e-42",
+    "creator_id": "cr-rafa.fit",
+    "tipo": "troca_chave_pix",
+    "em": "2026-11-20T14:26:00-03:00",
+    "detalhe": "(nova chave aleatória)"
+  },
+  {
+    "id": "e-43",
+    "creator_id": "cr-rafa.fit",
+    "tipo": "pedido_saque",
+    "em": "2026-11-20T14:32:00-03:00",
+    "valor": 4200.0,
+    "saldo": 4200.0
+  },
+  {
+    "id": "e-11",
+    "creator_id": "cr-lu.dicas",
+    "tipo": "pedido_saque",
+    "em": "2026-11-18T10:00:00-03:00",
+    "valor": 800.0,
+    "saldo": 3000.0
+  },
+  {
+    "id": "e-21",
+    "creator_id": "cr-glow.br",
+    "tipo": "troca_chave_pix",
+    "em": "2026-11-10T10:00:00-03:00",
+    "detalhe": "(troca planejada)"
+  },
+  {
+    "id": "e-22",
+    "creator_id": "cr-glow.br",
+    "tipo": "pedido_saque",
+    "em": "2026-11-17T10:00:00-03:00",
+    "valor": 1000.0,
+    "saldo": 1050.0
+  }
+]

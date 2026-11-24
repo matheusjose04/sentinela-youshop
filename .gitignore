@@ -17,3 +17,12 @@ __pycache__/
 .venv/
 .pytest_cache/
 .streamlit/secrets.toml
+
+# Arquivos do ECC (Everything Claude Code) — locais, não vão para o GitHub
+.ecc/
+.ecc-*
+.agentshield/
+memoria/
+docs/CODEMAPS/
+.coverage
+htmlcov/

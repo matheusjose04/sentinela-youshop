@@ -1,0 +1,222 @@
+[
+  {
+    "id": "r-11",
+    "comprador_id": "cp-11",
+    "produto_id": "pd-excel",
+    "creator_id": "cr-lu.dicas",
+    "em": "2026-11-15T10:00:00-03:00",
+    "motivo_codigo": "promessa_divulgacao",
+    "motivo": "Prometeram certificado reconhecido pelo MEC",
+    "percentual_assistido": 0.1,
+    "valor": 297.0
+  },
+  {
+    "id": "r-12",
+    "comprador_id": "cp-12",
+    "produto_id": "pd-excel",
+    "creator_id": "cr-lu.dicas",
+    "em": "2026-11-16T10:00:00-03:00",
+    "motivo_codigo": "promessa_divulgacao",
+    "motivo": "O certificado não é do MEC como o post dizia",
+    "percentual_assistido": 0.15000000000000002,
+    "valor": 297.0
+  },
+  {
+    "id": "r-13",
+    "comprador_id": "cp-13",
+    "produto_id": "pd-excel",
+    "creator_id": "cr-lu.dicas",
+    "em": "2026-11-17T10:00:00-03:00",
+    "motivo_codigo": "promessa_divulgacao",
+    "motivo": "Comprei pelo certificado do MEC",
+    "percentual_assistido": 0.2,
+    "valor": 297.0
+  },
+  {
+    "id": "r-14",
+    "comprador_id": "cp-14",
+    "produto_id": "pd-excel",
+    "creator_id": "cr-lu.dicas",
+    "em": "2026-11-18T10:00:00-03:00",
+    "motivo_codigo": "promessa_divulgacao",
+    "motivo": "Prometeram certificado reconhecido pelo MEC",
+    "percentual_assistido": 0.25,
+    "valor": 297.0
+  },
+  {
+    "id": "r-15",
+    "comprador_id": "cp-15",
+    "produto_id": "pd-excel",
+    "creator_id": "cr-lu.dicas",
+    "em": "2026-11-19T10:00:00-03:00",
+    "motivo_codigo": "promessa_divulgacao",
+    "motivo": "Divulgação falou em MEC, não tem",
+    "percentual_assistido": 0.30000000000000004,
+    "valor": 297.0
+  },
+  {
+    "id": "r-21",
+    "comprador_id": "cp-21",
+    "produto_id": "pd-serum",
+    "creator_id": "cr-bela.pele",
+    "em": "2026-11-14T15:00:00-03:00",
+    "motivo_codigo": "produto_defeituoso",
+    "motivo": "Chegou vazando",
+    "percentual_assistido": 0.0,
+    "valor": 159.9
+  },
+  {
+    "id": "r-22",
+    "comprador_id": "cp-22",
+    "produto_id": "pd-serum",
+    "creator_id": "cr-bela.pele",
+    "em": "2026-11-15T15:00:00-03:00",
+    "motivo_codigo": "produto_defeituoso",
+    "motivo": "chegou vazando!",
+    "percentual_assistido": 0.0,
+    "valor": 159.9
+  },
+  {
+    "id": "r-23",
+    "comprador_id": "cp-23",
+    "produto_id": "pd-serum",
+    "creator_id": "cr-skin.diaria",
+    "em": "2026-11-16T15:00:00-03:00",
+    "motivo_codigo": "produto_defeituoso",
+    "motivo": "Chegou vazando.",
+    "percentual_assistido": 0.0,
+    "valor": 159.9
+  },
+  {
+    "id": "r-24",
+    "comprador_id": "cp-24",
+    "produto_id": "pd-serum",
+    "creator_id": "cr-glow.br",
+    "em": "2026-11-17T15:00:00-03:00",
+    "motivo_codigo": "produto_defeituoso",
+    "motivo": "chegou vazando",
+    "percentual_assistido": 0.0,
+    "valor": 159.9
+  },
+  {
+    "id": "r-25",
+    "comprador_id": "cp-25",
+    "produto_id": "pd-serum",
+    "creator_id": "cr-rotina.leve",
+    "em": "2026-11-18T15:00:00-03:00",
+    "motivo_codigo": "produto_defeituoso",
+    "motivo": "Chegou  vazando",
+    "percentual_assistido": 0.0,
+    "valor": 159.9
+  },
+  {
+    "id": "r-26",
+    "comprador_id": "cp-26",
+    "produto_id": "pd-serum",
+    "creator_id": "cr-skin.diaria",
+    "em": "2026-11-19T15:00:00-03:00",
+    "motivo_codigo": "produto_defeituoso",
+    "motivo": "chegou vazando",
+    "percentual_assistido": 0.0,
+    "valor": 159.9
+  },
+  {
+    "id": "r-27",
+    "comprador_id": "cp-27",
+    "produto_id": "pd-serum",
+    "creator_id": "cr-glow.br",
+    "em": "2026-11-14T15:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei da textura",
+    "percentual_assistido": 0.0,
+    "valor": 159.9
+  },
+  {
+    "id": "r-51",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-51",
+    "creator_id": null,
+    "em": "2026-10-25T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.97,
+    "valor": 197.0
+  },
+  {
+    "id": "r-52",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-52",
+    "creator_id": null,
+    "em": "2026-10-29T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.94,
+    "valor": 197.0
+  },
+  {
+    "id": "r-53",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-53",
+    "creator_id": null,
+    "em": "2026-11-02T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.96,
+    "valor": 197.0
+  },
+  {
+    "id": "r-54",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-54",
+    "creator_id": null,
+    "em": "2026-11-06T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.93,
+    "valor": 197.0
+  },
+  {
+    "id": "r-55",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-55",
+    "creator_id": null,
+    "em": "2026-11-10T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.95,
+    "valor": 197.0
+  },
+  {
+    "id": "r-56",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-56",
+    "creator_id": null,
+    "em": "2026-11-14T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.98,
+    "valor": 197.0
+  },
+  {
+    "id": "r-57",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-57",
+    "creator_id": null,
+    "em": "2026-11-18T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.92,
+    "valor": 197.0
+  },
+  {
+    "id": "r-50",
+    "comprador_id": "cp-50",
+    "produto_id": "pd-59",
+    "creator_id": null,
+    "em": "2026-09-10T21:00:00-03:00",
+    "motivo_codigo": "nao_gostou_conteudo",
+    "motivo": "Não gostei do conteúdo",
+    "percentual_assistido": 0.9,
+    "valor": 147.0
+  }
+]
