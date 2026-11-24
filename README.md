@@ -169,9 +169,12 @@ O pacote `mcp==1.30.0` está fixado porque o `FastMCP` usado aqui existe na sér
 3. Escolha o repositório `matheusjose04/sentinela-youshop`, a branch `main` e o arquivo `app.py`.
 4. Em **Advanced settings**, escolha Python 3.12. Não é preciso nenhum secret.
 5. Clique em **Deploy** e aguarde o build (ele instala o `requirements.txt`).
-6. Copie a URL do app e troque `https://sentinela-youshop.streamlit.app` neste README.
+6. Copie a URL do app e coloque no link da seção Demo deste README.
 7. Teste no celular e no desktop, numa janela anônima, para confirmar que abre sem login.
 8. Opcional: personalize o subdomínio nas configurações do app.
+
+Se o log do app mostrar `ImportError` logo depois de um push, reinicie o app em **Manage app → ⋮ → Reboot app**.
+A atualização automática reexecuta o `app.py`, mas pode manter na memória a versão antiga dos módulos do `sentinela/`.
 
 ## Arquitetura
 
