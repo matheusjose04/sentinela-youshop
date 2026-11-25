@@ -1,0 +1,104 @@
+# Exemplo de deploy do Sentinela em Kubernetes (Deployment + Service + HorizontalPodAutoscaler).
+# A demo pública continua no Streamlit Community Cloud; este arquivo é só referência.
+#
+# Antes de aplicar:
+#   - Publique a imagem num registry e troque "sentinela:latest" abaixo pelo endereço dela.
+#   - O HPA precisa do metrics-server instalado no cluster (sem ele a CPU não é medida e não há escala).
+#   - O Streamlit mantém a sessão do usuário via websocket, presa a uma réplica. Com mais de uma réplica,
+#     configure sticky session no Ingress (ex.: ingress-nginx com
+#     nginx.ingress.kubernetes.io/affinity: "cookie").
+#   - Ao reduzir réplicas (scale-down ou rollout), as sessões abertas na cópia removida caem e o
+#     navegador reconecta numa sessão nova. O app não guarda estado importante na sessão, então
+#     o atendente só perde as marcações locais daquela aba.
+#
+#   kubectl apply -f deploy/k8s.yaml
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sentinela
+  labels:
+    app: sentinela
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: sentinela
+  template:
+    metadata:
+      labels:
+        app: sentinela
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001        # mesmo uid do usuário criado no Dockerfile
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: sentinela
+          image: sentinela:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8501
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sentinela
+  labels:
+    app: sentinela
+spec:
+  selector:
+    app: sentinela
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sentinela
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sentinela
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70   # % do request de CPU (250m)
+  behavior:
+    scaleDown:
+      # Espera 5 minutos de CPU baixa antes de reduzir, para não derrubar sessões à toa.
+      stabilizationWindowSeconds: 300

@@ -1,0 +1,17 @@
+# Exemplo para rodar o Sentinela em um servidor com Docker Compose.
+# A demo pública continua no Streamlit Community Cloud; este arquivo não é usado por ela.
+#   docker compose up -d --build
+services:
+  sentinela:
+    build: .
+    image: sentinela:latest
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+    healthcheck:
+      # A imagem slim não tem curl; usa o próprio Python para checar o endpoint de saúde do Streamlit.
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=3).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s

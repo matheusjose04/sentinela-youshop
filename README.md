@@ -88,6 +88,15 @@ troque `<CAMINHO>` pela pasta do projeto e reinicie o Claude Desktop.
 
 Nenhum dos três modos precisa de chave de API. A causa e os alertas vêm de regras determinísticas.
 
+## Produção e alta disponibilidade
+
+A demo pública roda no Streamlit Community Cloud. Os arquivos abaixo são **exemplos** de como o mesmo app rodaria num servidor próprio. Eles não são usados pela demo.
+
+- **Docker Compose** ([`docker-compose.yml`](docker-compose.yml)): `docker compose up -d --build` sobe o app com `restart: unless-stopped` e um healthcheck em `/_stcore/health`. Se o processo cair, o Docker reinicia o container.
+- **Kubernetes** ([`deploy/k8s.yaml`](deploy/k8s.yaml)): um Deployment com 2 réplicas, um Service e probes de liveness e readiness em `/_stcore/health`. Cada pod tem limites de CPU e memória e roda sem root. Se uma réplica falhar, a outra continua atendendo.
+- **Autoscaling**: um HorizontalPodAutoscaler mantém de 2 a 6 réplicas e escala quando a CPU passa de 70%. Para reduzir, ele espera 5 minutos de CPU baixa.
+  O HPA precisa do metrics-server no cluster. Como o Streamlit mantém cada sessão num websocket, o Ingress precisa de sticky session. Quando o número de réplicas diminui, as sessões abertas na réplica removida caem e o navegador reconecta.
+
 ## Qualidade
 
 - **494 testes com pytest**: algoritmos (grafo, BFS, Dijkstra, heap), os 7 cenários, regras de produto, interface (AppTest do Streamlit) e servidor MCP (incluindo um handshake real por stdio).
@@ -116,4 +125,4 @@ tests/            testes pytest
 
 ## Autor
 
-**Matheus Casarin** · [GitHub](https://github.com/matheusjose04) · [LinkedIn](https://www.linkedin.com/in/COLOQUE-SEU-PERFIL)
+**Matheus Casarin** · [GitHub](https://github.com/matheusjose04) · [LinkedIn](https://www.linkedin.com/in/matheuscasarin)
