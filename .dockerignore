@@ -1,0 +1,39 @@
+# Controle de versão e caches
+.git
+.gitignore
+.github
+.devcontainer
+__pycache__/
+**/__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Testes não vão para a imagem
+tests/
+
+# Segredos
+.env
+.env.*
+.streamlit/secrets.toml
+
+# Mesmos itens do .gitignore
+node_modules/
+dist/
+*.log
+.DS_Store
+CLAUDE.md
+.claude/
+docs/
+PROMPT_INICIAL.md
+COMO_USAR.md
+.ecc/
+.ecc-*
+.agentshield/
+memoria/
+
+# Arquivos de build da própria imagem
+Dockerfile
+.dockerignore
